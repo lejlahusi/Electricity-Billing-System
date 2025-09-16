@@ -54,6 +54,25 @@ And contain the following columns:
 
 ## 🧪 Local Development
 
+### Clone the repository
+```bash
+git clone https://github.com/lejlahusi/Electricity-Billing-System.git
+cd Electricity-Billing-System
+```
+
+### Create and activate virtual environment
+```bash
+python -m venv myvenv
+source myvenv/bin/activate  # On Windows use: myvenv\Scripts\activate
+```
+
+## Run without docker
+```bash
+pip install -r requirements.txt # install dependencies
+uvicorn app.main:app --reload #run the app 
+```
+
+## Run with docker
 ```bash
 # Build and run with Docker
 docker-compose up --build

@@ -31,11 +31,42 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 @app.get("/")
 def root(request: Request):
+    """
+    Render the homepage.
+
+    Parameters
+    ----------
+    request : Request
+        FastAPI request object.
+
+    Returns
+    -------
+    TemplateResponse
+        Rendered HTML template for the index page.
+    """
     return templates.TemplateResponse("index.html", {"request": request, "message": "Hello, FastAPI!"})
 
 
 @app.post("/upload-csv")
 async def upload_csv(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    """
+    Upload and process a CSV file containing consumption data.
+
+    Extracts customer ID from filename, parses CSV rows, inserts consumption records,
+    and generates a billing record if one doesn't exist.
+
+    Parameters
+    ----------
+    file : UploadFile
+        Uploaded CSV file.
+    db : Session
+        SQLAlchemy database session.
+
+    Returns
+    -------
+    dict
+        Message indicating success or error.
+    """
     # Extract costumer_id from filename
     filename_parts = file.filename.split("-")
     if len(filename_parts) < 3:
@@ -100,6 +131,27 @@ async def submit_form(
     customer_id: str = Form(...,alias="costumer_id"),
     db: Session = Depends(get_db)
 ):
+    """
+    Submit customer information via form.
+
+    Creates a new customer record if one doesn't already exist.
+
+    Parameters
+    ----------
+    name : str
+        Customer's name.
+    email : str
+        Customer's email address.
+    customer_id : str
+        Unique customer identifier.
+    db : Session
+        SQLAlchemy database session.
+
+    Returns
+    -------
+    RedirectResponse or dict
+        Redirect to homepage or message if customer exists.
+    """
     logger.info(name)
     if not crud.get_costumer(db, costumer_id=customer_id):
         costumer_data = schemas.CostumerCreate(
@@ -114,27 +166,65 @@ async def submit_form(
 
     return RedirectResponse(url="/", status_code=303)
 
-def get_bills_for_customer_and_month(customer_id: str, month: datetime) -> list[dict]:
-    # Replace with actual DB query
-    return [
-        {"description": "Electricity", "amount": 80.00},
-        {"description": "Water", "amount": 40.50}
-    ]
 
 @app.get("/get-customers")
 async def costumer(request: Request,db: Session = Depends(get_db)):
-    logger.info("clicked")
+    """
+    Retrieve all customer records.
+
+    Parameters
+    ----------
+    request : Request
+        FastAPI request object.
+    db : Session
+        SQLAlchemy database session.
+
+    Returns
+    -------
+    list
+        List of customer records.
+    """
     customers=crud.get_costumers(db)
     logging.info(customers)
     return customers
 
 @app.get("/get-bills")
 async def bills(request: Request,db: Session = Depends(get_db)):
+    """
+    Retrieve all billing records.
+
+    Parameters
+    ----------
+    request : Request
+        FastAPI request object.
+    db : Session
+        SQLAlchemy database session.
+
+    Returns
+    -------
+    list
+        List of billing records.
+    """
     bills=crud.get_bills(db)
     return bills
 
 @app.post("/render-file")
 async def render_file(request: Request):
+    """
+    Retrieve all billing records.
+
+    Parameters
+    ----------
+    request : Request
+        FastAPI request object.
+    db : Session
+        SQLAlchemy database session.
+
+    Returns
+    -------
+    list
+        List of billing records.
+    """
     data = await request.json()
 
     name = data["name"]
@@ -147,27 +237,7 @@ async def render_file(request: Request):
     billing_consumption = float(data["billing_consumption"])
     today = datetime.today().strftime("%Y-%m-%d")
 
-    #filename = f"bill_report-{customer_id}_{billing_month}.pdf"
-    #filepath = os.path.join("reports", filename)
-    os.makedirs("reports", exist_ok=True)
-
-    # with open(filepath, "w", encoding="utf-8") as f:
-    #     f.write("╔════════════════════════════════════════════════════╗\n")
-    #     f.write("║                ELECTRICITY BILL REPORT             ║\n")
-    #     f.write("╚════════════════════════════════════════════════════╝\n\n")
-
-    #     f.write(f"Name           : {name}\n")
-    #     f.write(f"Email          : {email}\n")
-    #     f.write(f"Customer ID    : {customer_id}\n")
-    #     f.write(f"Billing Month  : {billing_month}\n")
-    #     f.write(f"Generated Date : {today}\n")
-
-    #     f.write("\n" + "─" * 55 + "\n")
-    #     f.write(f"{'Billing Total Consumption':<35} {billing_consumption:>10.2f} kW\n")
-    #     f.write(f"{'Total Billing Value':<35} €{billing_value:>10.2f}\n")
-    #     f.write("─" * 55 + "\n")
-    
-
+    os.makedirs("reports", exist_ok=True) # make folder if doesn't exist
     html_content = f"""
     <html>
       <head>

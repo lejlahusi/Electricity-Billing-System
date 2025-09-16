@@ -1,21 +1,17 @@
-//  Copyright (c) 2025 Lejla Husić
-//  Licensed under the MIT License. See LICENSE file in the project root for full license information.
+// Copyright (c) 2025 Lejla Husić
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
 (function () {
-  var width,
-    height,
-    largeHeader,
-    canvas,
-    ctx,
-    points,
-    target,
-    animateHeader = true;
+  var width, height, largeHeader, canvas, ctx, points, target, animateHeader = true;
 
-  // Main
+  // Initialize canvas and animation
   initHeader();
   initAnimation();
   addListeners();
 
+  /**
+   * Initializes the canvas header and generates animated points.
+   */
   function initHeader() {
     width = window.innerWidth;
     height = window.innerHeight;
@@ -29,40 +25,27 @@
     canvas.height = height;
     ctx = canvas.getContext("2d");
 
-    // create points
+    // Generate grid of points
     points = [];
-    for (var x = 0; x < width; x = x + width / 20) {
-      for (var y = 0; y < height; y = y + height / 20) {
+    for (var x = 0; x < width; x += width / 20) {
+      for (var y = 0; y < height; y += height / 20) {
         var px = x + (Math.random() * width) / 20;
         var py = y + (Math.random() * height) / 20;
-        var p = { x: px, originX: px, y: py, originY: py };
-        points.push(p);
+        points.push({ x: px, originX: px, y: py, originY: py });
       }
     }
 
-    // for each point find the 5 closest points
+    // Find 5 closest neighbors for each point
     for (var i = 0; i < points.length; i++) {
       var closest = [];
       var p1 = points[i];
       for (var j = 0; j < points.length; j++) {
         var p2 = points[j];
-        if (!(p1 == p2)) {
-          var placed = false;
+        if (p1 !== p2) {
           for (var k = 0; k < 5; k++) {
-            if (!placed) {
-              if (closest[k] == undefined) {
-                closest[k] = p2;
-                placed = true;
-              }
-            }
-          }
-
-          for (var k = 0; k < 5; k++) {
-            if (!placed) {
-              if (getDistance(p1, p2) < getDistance(p1, closest[k])) {
-                closest[k] = p2;
-                placed = true;
-              }
+            if (!closest[k] || getDistance(p1, p2) < getDistance(p1, closest[k])) {
+              closest[k] = p2;
+              break;
             }
           }
         }
@@ -70,18 +53,15 @@
       p1.closest = closest;
     }
 
-    // assign a circle to each point
+    // Assign circles to each point
     for (var i in points) {
-      var c = new Circle(
-        points[i],
-        2 + Math.random() * 2,
-        "rgba(255,255,255,0.3)"
-      );
-      points[i].circle = c;
+      points[i].circle = new Circle(points[i], 2 + Math.random() * 2, "rgba(255,255,255,0.3)");
     }
   }
 
-  // Event handling
+  /**
+   * Adds mouse and window event listeners.
+   */
   function addListeners() {
     if (!("ontouchstart" in window)) {
       window.addEventListener("mousemove", mouseMove);
@@ -90,30 +70,27 @@
     window.addEventListener("resize", resize);
   }
 
+  /**
+   * Updates target position based on mouse movement.
+   * @param {MouseEvent} e
+   */
   function mouseMove(e) {
-    var posx = (posy = 0);
-    if (e.pageX || e.pageY) {
-      posx = e.pageX;
-      posy = e.pageY;
-    } else if (e.clientX || e.clientY) {
-      posx =
-        e.clientX +
-        document.body.scrollLeft +
-        document.documentElement.scrollLeft;
-      posy =
-        e.clientY +
-        document.body.scrollTop +
-        document.documentElement.scrollTop;
-    }
+    var posx = e.pageX || e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+    var posy = e.pageY || e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
     target.x = posx;
     target.y = posy;
   }
 
+  /**
+   * Toggles animation based on scroll position.
+   */
   function scrollCheck() {
-    if (document.body.scrollTop > height) animateHeader = false;
-    else animateHeader = true;
+    animateHeader = document.body.scrollTop <= height;
   }
 
+  /**
+   * Resizes canvas and header on window resize.
+   */
   function resize() {
     width = window.innerWidth;
     height = window.innerHeight;
@@ -122,7 +99,9 @@
     canvas.height = height;
   }
 
-  // animation
+  /**
+   * Starts the animation loop and shifts points.
+   */
   function initAnimation() {
     animate();
     for (var i in points) {
@@ -130,25 +109,16 @@
     }
   }
 
+  /**
+   * Animates canvas frame-by-frame.
+   */
   function animate() {
     if (animateHeader) {
       ctx.clearRect(0, 0, width, height);
       for (var i in points) {
-        // detect points in range
-        if (Math.abs(getDistance(target, points[i])) < 4000) {
-          points[i].active = 0.3;
-          points[i].circle.active = 0.6;
-        } else if (Math.abs(getDistance(target, points[i])) < 20000) {
-          points[i].active = 0.1;
-          points[i].circle.active = 0.3;
-        } else if (Math.abs(getDistance(target, points[i])) < 40000) {
-          points[i].active = 0.02;
-          points[i].circle.active = 0.1;
-        } else {
-          points[i].active = 0;
-          points[i].circle.active = 0;
-        }
-
+        var dist = getDistance(target, points[i]);
+        points[i].active = dist < 4000 ? 0.3 : dist < 20000 ? 0.1 : dist < 40000 ? 0.02 : 0;
+        points[i].circle.active = points[i].active * 2;
         drawLines(points[i]);
         points[i].circle.draw();
       }
@@ -156,8 +126,12 @@
     requestAnimationFrame(animate);
   }
 
+  /**
+   * Randomly shifts a point's position with easing.
+   * @param {Object} p
+   */
   function shiftPoint(p) {
-    TweenLite.to(p, 1 + 1 * Math.random(), {
+    TweenLite.to(p, 1 + Math.random(), {
       x: p.originX - 50 + Math.random() * 100,
       y: p.originY - 50 + Math.random() * 100,
       ease: Circ.easeInOut,
@@ -167,7 +141,10 @@
     });
   }
 
-  // Canvas manipulation
+  /**
+   * Draws lines between a point and its closest neighbors.
+   * @param {Object} p
+   */
   function drawLines(p) {
     if (!p.active) return;
     for (var i in p.closest) {
@@ -179,16 +156,23 @@
     }
   }
 
+  /**
+   * Circle constructor for animated points.
+   * @param {Object} pos
+   * @param {number} rad
+   * @param {string} color
+   */
   function Circle(pos, rad, color) {
     var _this = this;
-
-    // constructor
     (function () {
-      _this.pos = pos || null;
-      _this.radius = rad || null;
-      _this.color = color || null;
+      _this.pos = pos;
+      _this.radius = rad;
+      _this.color = color;
     })();
 
+    /**
+     * Draws the circle on canvas.
+     */
     this.draw = function () {
       if (!_this.active) return;
       ctx.beginPath();
@@ -198,12 +182,18 @@
     };
   }
 
-  // Util
+  /**
+   * Calculates squared distance between two points.
+   * @param {Object} p1
+   * @param {Object} p2
+   * @returns {number}
+   */
   function getDistance(p1, p2) {
     return Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2);
   }
 })();
 
+// DOM elements
 const button = document.querySelector(".btn");
 const fileInput = document.getElementById("csv-input");
 
@@ -220,6 +210,7 @@ fileInput.addEventListener("change", () => {
   const formData = new FormData();
   formData.append("file", file);
   $("#loadingOverlay").show();
+
   fetch("/upload-csv", {
     method: "POST",
     body: formData,
@@ -243,22 +234,17 @@ const popup = document.getElementById("costumerInformationPopup");
 const popup2 = document.getElementById("popupCostumersAndElBills");
 const openPopup2 = document.getElementById("openPopupCostumersAndElBills");
 
-openPopup.addEventListener("click", () => {
-  popup.style.display = "flex";
-});
-openPopup2.addEventListener("click", () => {
-  popup2.style.display = "flex";
-});
+// Show popups
+openPopup.addEventListener("click", () => popup.style.display = "flex");
+openPopup2.addEventListener("click", () => popup2.style.display = "flex");
 
-closePopup1.addEventListener("click", () => {
-  popup.style.display = "none";
-});
+// Hide popups
+closePopup1.addEventListener("click", () => popup.style.display = "none");
+closePopup2.addEventListener("click", () => popup2.style.display = "none");
 
-closePopup2.addEventListener("click", () => {
-  popup2.style.display = "none";
-});
-
-
+/**
+ * Loads billing data into the DataTable.
+ */
 function loadBills() {
   let table = $("#billTable").DataTable({
     processing: true,

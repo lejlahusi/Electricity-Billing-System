@@ -20,6 +20,22 @@ def get_db():
         db.close()
 
 class Consumption(Base):
+    """
+    SQLAlchemy model for electricity consumption records.
+
+    Attributes
+    ----------
+    id : int
+        Primary key.
+    timestamp : datetime
+        Timestamp of the consumption measurement.
+    consumption : float
+        Amount of electricity consumed in kWh.
+    price : float
+        Price per kWh in EUR.
+    costumer_id : str
+        Foreign key referencing the customer.
+    """
     __tablename__='electrical_constumption'
     id=Column(Integer, primary_key=True, index=True)
     timestamp=Column(DateTime, index=True)
@@ -28,13 +44,43 @@ class Consumption(Base):
     costumer_id=Column(String, ForeignKey("costumers.costumer_id"))
 
 class Costumer(Base):
+    """
+    SQLAlchemy model for customer records.
+
+    Attributes
+    ----------
+    costumer_id : str
+        Primary key and unique identifier for the customer.
+    name : str or None
+        Full name of the customer.
+    email : str
+        Email address of the customer.
+    """
     __tablename__='costumers'
     costumer_id=Column(String,primary_key=True, nullable=False)
     name=Column(String, nullable=True)
     email=Column(String, nullable=False)
-    #consumption=relationship("Consumption",back_populates="customer")
+
 
 class Bill(Base):
+    """
+    SQLAlchemy model for billing records.
+
+    Attributes
+    ----------
+    costumer_id : str
+        Primary key and customer identifier.
+    name : str or None
+        Full name of the customer.
+    email : str
+        Email address of the customer.
+    billing_month : datetime
+        Month for which the bill is generated.
+    billing_value : float
+        Total billing amount in EUR.
+    billing_consumption : float
+        Total electricity consumption in kWh.
+    """
     __tablename__='bills'
     costumer_id=Column(String,primary_key=True, nullable=False)
     name=Column(String, nullable=True)
