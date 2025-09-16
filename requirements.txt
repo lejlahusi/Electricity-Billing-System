@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy
+alembic
+pydantic
+jinja2
+python-multipart
+pandas
+weasyprint
+python-dotenv
+email-validator

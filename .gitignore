@@ -1,0 +1,7 @@
+__pycache__/
+.ruff_cache/
+app/__pycache__/
+myvenv/
+reports/
+*.log
+*.db

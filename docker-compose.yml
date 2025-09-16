@@ -1,0 +1,10 @@
+services:
+  web:
+    build: .
+    volumes:
+      - ./:/app
+      - ./data:/app/data
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: sqlite+aiosqlite:///./app.db

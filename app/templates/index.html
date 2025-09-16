@@ -1,0 +1,175 @@
+ <!-- Copyright (c) 2025 Lejla Husić
+ Licensed under the MIT License. See LICENSE file in the project root for full license information. -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenLite.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/easing/EasePack.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css"
+    />
+    <script src="//cdn.datatables.net/2.3.4/js/dataTables.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Roboto+Flex:opsz,wght@8..144,100..1000&family=Sansation:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap"
+      rel="stylesheet"
+    />
+    <meta name="theme-color" content="#121212" />
+  </head>
+  <body>
+    <div id="large-header" class="large-header">
+      <canvas id="demo-canvas"></canvas>
+      <div
+        class="button-wrapper"
+        style="position: absolute; left: 50%; top: 45%"
+      >
+        <input type="file" id="csv-input" accept=".csv" style="display: none" />
+        <button class="btn">
+          <svg width="180px" height="60px" viewBox="0 0 180 60" class="border">
+            <polyline points="179,1 179,59 1,59 1,1 179,1" class="bg-line" />
+            <polyline points="179,1 179,59 1,59 1,1 179,1" class="hl-line" />
+          </svg>
+          <span>2. Import measurement CSVs</span>
+        </button>
+      </div>
+
+      <div
+        class="button-wrapper"
+        style="position: absolute; left: 50%; top: 30%"
+      >
+        <button id="openPopupCostumers" class="btn">
+          1. Input Costumer Info
+        </button>
+      </div>
+      <div
+        class="button-wrapper"
+        style="position: absolute; left: 50%; top: 60%"
+      >
+        <button
+          id="openPopupCostumersAndElBills"
+          class="btn"
+          onclick="loadBills()"
+        >
+          3. Show Costumers and Electrical Bills
+        </button>
+      </div>
+    </div>
+
+    <div
+      id="popupCostumersAndElBills"
+      class="popup"
+      style="margin-left: 15%; margin-top: 10%; width: 75%; height: 75%"
+    >
+      <div
+        class="popup-content"
+        style="
+          background-color: rgba(192, 185, 99, 0.9);
+          align-items: center;
+          width: 100%;
+          height: 100%;
+        "
+      >
+        <h2>Bill List</h2>
+        <div style="width: 100%; overflow-x: auto">
+          <table id="billTable" class="display">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Customer ID</th>
+                <th>Billing Month</th>
+                <th>Billing Value (&euro;)</th>
+                <th>Billing Total Consumption (kW)</th>
+                <th>Preview Bill</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <button
+          id="closePopup2"
+          class="btn"
+          style="
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: #000000;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+          "
+        >
+          Close
+        </button>
+      </div>
+    </div>
+
+    <div id="costumerInformationPopup" class="popup">
+      <div
+        class="popup-content"
+        style="background-color: rgba(192, 185, 99, 0.9); align-items: center"
+      >
+        <h2>Input Costumer Information</h2>
+        <form action="/costumer-information" method="post">
+          <ul>
+            <li>
+              <label>Name:</label>
+              <input type="text" name="name" />
+            </li>
+            <li>
+              <label>Email:</label>
+              <input type="text" name="email" />
+            </li>
+            <li>
+              <label>Costumer ID: </label>
+              <input type="text" name="costumer_id" />
+            </li>
+
+            <li>
+              <button
+                class="btn"
+                style="background-color: #000000; border: none"
+                type="submit"
+              >
+                Submit
+              </button>
+            </li>
+          </ul>
+        </form>
+
+        <button
+          id="closePopup1"
+          class="btn"
+          style="
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: #000000;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+          "
+        >
+          Close
+        </button>
+      </div>
+    </div>
+    <div id="loadingOverlay" style="display: none">
+      <div class="spinner"></div>
+    </div>
+  </body>
+  <script src="{{ url_for('static', path='script.js') }}"></script>
+</html>
